@@ -31,6 +31,8 @@ from ortools.sat.python import cp_model  # Import the CP-SAT solver.
 def main():
     
     #Include own dataset form better grade******
+    #Mabye try different solvers******
+    #Create a visual representation of the output?******
     
     # Data: List of jobs, each job is a list of tasks, and each task is a tuple (machine_id, processing_time).
     jobs_data = [
