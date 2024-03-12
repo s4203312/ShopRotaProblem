@@ -5,6 +5,7 @@
 import collections  # Provides access to specialized container datatypes.
 import customtkinter as ctk
 import pandas as pd 
+import matplotlib.pyplot as plt
 
 from ortools.sat.python import cp_model  # Import the CP-SAT solver.
 
@@ -15,6 +16,7 @@ assigned_task_type = tuple
 all_tasks = tuple
 all_machines = tuple
 jobs_data = []
+colours = [("Black"), ("Blue"), ("Red"), ("Yellow"), ("Green")]
 
 def main():
     global assigned_task_type
@@ -34,7 +36,6 @@ def main():
 
     #Displaying Result
     DisplaySolution(solver, status)
-    #GUISetUp()
     
 
 
@@ -53,7 +54,7 @@ def DataSetCreation():
             tasks.append((machine_id, processing_time))
         jobs_data.append(tasks)
 
-    #print(jobs_data)
+    print(jobs_data)
     return jobs_data
 
 def ModelCreation(jobs_data):
@@ -127,6 +128,10 @@ def ModelCreation(jobs_data):
     return model
 
 def DisplaySolution(solver, status):
+
+    chart, axis = plt.subplots()
+    chart.suptitle("Machine Tasks")
+
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         print("Solution:")
             # Assign tasks to machines based on the solution.
@@ -146,7 +151,7 @@ def DisplaySolution(solver, status):
         # Generate and print the schedule for each machine.
         output = ""
         for machine in all_machines:
-            assigned_jobs[machine].sort()  # Sort tasks by start time.
+            outputTable = assigned_jobs[machine].sort()  # Sort tasks by start time.
             sol_line_tasks = "Machine " + str(machine) + ": "
             sol_line = "           "
 
@@ -158,6 +163,8 @@ def DisplaySolution(solver, status):
                 duration = assigned_task.duration
                 sol_tmp = f"[{start},{start + duration}]"
                 sol_line += f"{sol_tmp:15}"
+                #Add a bar to the graph
+                axis.barh(machine ,width=duration-start ,left=start, color=colours[assigned_task.job], label="Task:" + str(assigned_task.index))
 
             sol_line += "\n"
             sol_line_tasks += "\n"
@@ -175,28 +182,10 @@ def DisplaySolution(solver, status):
     print(f"  - branches : {solver.NumBranches()}")
     print(f"  - wall time: {solver.WallTime()}s")
 
-
-#Unused so far need to find out how to diplay tables in nice format
-def GUISetUp():
-    ctk.set_appearance_mode("dark")
-    ctk.set_default_color_theme("dark-blue")
-
-    root = ctk.CTk()
-    root.geometry("500x350")
-
-    frame = ctk.CTkFrame(master=root)
-    frame.pack(pady=20, padx=60, fill="both", expand=True)
-
-    label = ctk.CTkLabel(master=frame, text="Login System", font=("Roboto", 24))
-    label.pack(pady=12, padx=10)
-
-    button = ctk.CTkButton(master=frame, text="Login", command=login)
-    button.pack(pady=12, padx=10)
-
-    root.mainloop()
-
-def login():
-    print("test")
+    #Add y axis label and show graph
+    axis.set_yticks(range(len(jobs_data)))
+    axis.set_yticklabels([f'Machine:{i+1}' for i in range(len(jobs_data))])
+    plt.show()
 
 #Starts the program
 if __name__ == "__main__":

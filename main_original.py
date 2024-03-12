@@ -49,7 +49,7 @@ def main():
         [(1, 4), (2, 3)],  # Job2: Tasks (Machine 1 for 4 units, Machine 2 for 3 units)
     ]
 
-
+    print(jobs_data)
 
     # Calculate the number of machines needed by finding the highest machine_id in jobs_data and adding 1.
     machines_count = 1 + max(task[0] for job in jobs_data for task in job)
