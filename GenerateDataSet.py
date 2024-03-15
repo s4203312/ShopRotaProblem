@@ -2,13 +2,13 @@ import random
 import pandas as pd
 
 num_jobs = 20
-num_machines = 10
+num_machines = 9
 current_task = 1
 
 # Generate random number of tasks for each job (between 1 and 5), machine to complete on, time (between 2 and 5 hours)
 tasks_per_job = [random.randint(1, 5) for i in range(num_jobs)]
 total_jobs = sum(tasks_per_job)
-machine_numbers = [random.randint(1, num_machines) for i in range(total_jobs)]
+machine_numbers = [random.randint(0, num_machines) for i in range(total_jobs)]
 task_times = [random.randint(2, 5) for i in range(total_jobs)]
 
 # Create dataframe to store the dataset

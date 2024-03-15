@@ -3,20 +3,20 @@
 #Create a visual representation of the output?******
 
 import collections  # Provides access to specialized container datatypes.
-import customtkinter as ctk
 import pandas as pd 
 import matplotlib.pyplot as plt
 
 from ortools.sat.python import cp_model  # Import the CP-SAT solver.
 
 #Read Data From CSV File
-dataFile = pd.read_csv("OptimizationDataSet.csv", usecols=[0,1,2,3] ,header=None, skiprows=1)
+#dataFile = pd.read_csv("OptimizationDataSet.csv", usecols=[0,1,2,3] ,header=None, skiprows=1)
+dataFile = pd.read_csv("rota_scheduling_dataset.csv", usecols=[0,1,2,3] ,header=None, skiprows=1)
 
 assigned_task_type = tuple
 all_tasks = tuple
 all_machines = tuple
 jobs_data = []
-colours = [("Black"), ("Blue"), ("Red"), ("Yellow"), ("Green")]
+colours = [("b"), ("g"), ("r"), ("c"), ("m"), ("y"),     ("b"), ("g"), ("r"), ("c"), ("m"), ("y"), ("b"), ("g"), ("r"), ("c"), ("m"), ("y"), ("b"), ("g"), ("r"), ("c"), ("m"), ("y")]
 
 def main():
     global assigned_task_type
@@ -130,6 +130,7 @@ def ModelCreation(jobs_data):
 def DisplaySolution(solver, status):
 
     chart, axis = plt.subplots()
+    #plt.subplots_adjust(left=0.5, right=0.5)
     chart.suptitle("Machine Tasks")
 
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
@@ -152,10 +153,11 @@ def DisplaySolution(solver, status):
         output = ""
         for machine in all_machines:
             outputTable = assigned_jobs[machine].sort()  # Sort tasks by start time.
-            sol_line_tasks = "Machine " + str(machine) + ": "
+            sol_line_tasks = "Machine " + str(machine + 1) + ": "
             sol_line = "           "
 
             for assigned_task in assigned_jobs[machine]:
+                axisjobnum = []
                 name = f"job_{assigned_task.job}_task_{assigned_task.index}"
                 # Format the task information for printing.
                 sol_line_tasks += f"{name:15}"
@@ -164,7 +166,9 @@ def DisplaySolution(solver, status):
                 sol_tmp = f"[{start},{start + duration}]"
                 sol_line += f"{sol_tmp:15}"
                 #Add a bar to the graph
-                axis.barh(machine ,width=duration-start ,left=start, color=colours[assigned_task.job], label="Task:" + str(assigned_task.index))
+                bar = axis.barh(machine ,width=duration ,left=start, color=colours[assigned_task.job])
+                axisjobnum.append(assigned_task.job)
+            axis.bar_label(bar, labels=[f'Job:{num}' for num in axisjobnum], label_type='center')
 
             sol_line += "\n"
             sol_line_tasks += "\n"
@@ -183,8 +187,11 @@ def DisplaySolution(solver, status):
     print(f"  - wall time: {solver.WallTime()}s")
 
     #Add y axis label and show graph
-    axis.set_yticks(range(len(jobs_data)))
-    axis.set_yticklabels([f'Machine:{i+1}' for i in range(len(jobs_data))])
+    axis.set_yticks(range(len(all_machines)))
+    axis.set_yticklabels([f'{i+1}' for i in range(len(all_machines))])
+    axis.set_ylabel('Machine')
+    axis.invert_yaxis()
+    axis.set_xlabel('Time(h)')
     plt.show()
 
 #Starts the program
