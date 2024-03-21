@@ -2,6 +2,12 @@
 #Mabye try different solvers******
 #Create a visual representation of the output?******
 
+#for easter
+#use seaboard
+#compare diffeent solvers
+#Could add another constraint that means jobs need to be completed before others to add another level of difficulty 
+#Display more than one outcome??
+
 import collections  # Provides access to specialized container datatypes.
 import pandas as pd 
 import matplotlib.pyplot as plt
@@ -36,7 +42,15 @@ def main():
 
     #Displaying Result
     DisplaySolution(solver, status)
-    
+
+
+def ChartColourCreation():
+    global colours
+
+    grouped_tasks = dataFile.groupby(0)
+    num_jobs = grouped_tasks.size()
+    for job in num_jobs:
+        colours.append()
 
 
 def DataSetCreation():
@@ -129,7 +143,7 @@ def ModelCreation(jobs_data):
 
 def DisplaySolution(solver, status):
 
-    chart, axis = plt.subplots()
+    chart, axis = plt.subplots(figsize=(15, 6))
     #plt.subplots_adjust(left=0.5, right=0.5)
     chart.suptitle("Machine Tasks")
 
@@ -166,7 +180,7 @@ def DisplaySolution(solver, status):
                 sol_tmp = f"[{start},{start + duration}]"
                 sol_line += f"{sol_tmp:15}"
                 #Add a bar to the graph
-                bar = axis.barh(machine ,width=duration ,left=start, color=colours[assigned_task.job])
+                bar = axis.barh(machine, width=duration, left=start, color=colours[assigned_task.job])
                 axisjobnum.append(assigned_task.job)
             axis.bar_label(bar, labels=[f'Job:{num}' for num in axisjobnum], label_type='center')
 
@@ -192,6 +206,7 @@ def DisplaySolution(solver, status):
     axis.set_ylabel('Machine')
     axis.invert_yaxis()
     axis.set_xlabel('Time(h)')
+    axis.legend()
     plt.show()
 
 #Starts the program
