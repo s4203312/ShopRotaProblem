@@ -1,4 +1,3 @@
-#Include own dataset form better grade****** done ** need to find data to fill out set
 #Mabye try different solvers******
 #Create a visual representation of the output?******
 
@@ -11,18 +10,18 @@
 import collections  # Provides access to specialized container datatypes.
 import pandas as pd 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 from ortools.sat.python import cp_model  # Import the CP-SAT solver.
 
 #Read Data From CSV File
-#dataFile = pd.read_csv("OptimizationDataSet.csv", usecols=[0,1,2,3] ,header=None, skiprows=1)
 dataFile = pd.read_csv("rota_scheduling_dataset.csv", usecols=[0,1,2,3] ,header=None, skiprows=1)
 
 assigned_task_type = tuple
 all_tasks = tuple
 all_machines = tuple
 jobs_data = []
-colours = [("b"), ("g"), ("r"), ("c"), ("m"), ("y"),     ("b"), ("g"), ("r"), ("c"), ("m"), ("y"), ("b"), ("g"), ("r"), ("c"), ("m"), ("y"), ("b"), ("g"), ("r"), ("c"), ("m"), ("y")]
+colours = []
 
 def main():
     global assigned_task_type
@@ -32,6 +31,9 @@ def main():
 
     #Creating a dataset from the csv file read by pandas
     jobs_data = DataSetCreation()
+    #Creating the colour list so all jobs can be assigned a colour later
+    ChartColourCreation()
+
 
     #Create model for ORtools use
     model = ModelCreation(jobs_data)
@@ -48,10 +50,21 @@ def ChartColourCreation():
     global colours
 
     grouped_tasks = dataFile.groupby(0)
-    num_jobs = grouped_tasks.size()
-    for job in num_jobs:
-        colours.append()
+    length_using_shape = grouped_tasks.size().shape[0]
+    coloursRequired = length_using_shape // 6
+    i = 0
+    #print(coloursRequired)
+    while i < coloursRequired:
+        colours.append(("b"))
+        colours.append(("g"))
+        colours.append(("r"))
+        colours.append(("c"))
+        colours.append(("m"))
+        colours.append(("y"))
+        i += 1
 
+    for colour in colours:
+        print(colour)
 
 def DataSetCreation():
     global jobs_data
