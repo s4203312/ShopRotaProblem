@@ -11,6 +11,7 @@ import collections  # Provides access to specialized container datatypes.
 import pandas as pd 
 import matplotlib.pyplot as plt
 import seaborn as sns
+import randomcolor
 
 from ortools.sat.python import cp_model  # Import the CP-SAT solver.
 
@@ -51,20 +52,12 @@ def ChartColourCreation():
 
     grouped_tasks = dataFile.groupby(0)
     length_using_shape = grouped_tasks.size().shape[0]
-    coloursRequired = length_using_shape // 6
+    coloursRequired = length_using_shape
     i = 0
-    #print(coloursRequired)
     while i < coloursRequired:
-        colours.append(("b"))
-        colours.append(("g"))
-        colours.append(("r"))
-        colours.append(("c"))
-        colours.append(("m"))
-        colours.append(("y"))
+        # Generate a random color
+        colours.append(randomcolor.RandomColor().generate())
         i += 1
-
-    for colour in colours:
-        print(colour)
 
 def DataSetCreation():
     global jobs_data
