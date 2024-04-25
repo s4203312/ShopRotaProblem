@@ -1,8 +1,4 @@
 #Mabye try different solvers******
-#Create a visual representation of the output?******
-
-#for easter
-#use seaboard
 #compare diffeent solvers
 #Could add another constraint that means jobs need to be completed before others to add another level of difficulty 
 #Display more than one outcome??
@@ -10,7 +6,6 @@
 import collections  # Provides access to specialized container datatypes.
 import pandas as pd 
 import matplotlib.pyplot as plt
-import seaborn as sns
 import randomcolor
 
 from ortools.sat.python import cp_model  # Import the CP-SAT solver.
@@ -150,12 +145,11 @@ def ModelCreation(jobs_data):
 def DisplaySolution(solver, status):
 
     chart, axis = plt.subplots(figsize=(15, 6))
-    #plt.subplots_adjust(left=0.5, right=0.5)
     chart.suptitle("Machine Tasks")
 
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         print("Solution:")
-            # Assign tasks to machines based on the solution.
+        #Assign tasks to machines based on the solution.
         assigned_jobs = collections.defaultdict(list)
         for job_id, job in enumerate(jobs_data):
             for task_id, task in enumerate(job):
@@ -169,17 +163,17 @@ def DisplaySolution(solver, status):
                     )                    
                 )
 
-        # Generate and print the schedule for each machine.
+        #Generate and print the schedule for each machine.
         output = ""
         for machine in all_machines:
-            assigned_jobs[machine].sort()  # Sort tasks by start time.
+            assigned_jobs[machine].sort()  #Sort tasks by start time.
             sol_line_tasks = "Machine " + str(machine + 1) + ": "
             sol_line = "           "
 
             for assigned_task in assigned_jobs[machine]:
                 axisjobnum = []
                 name = f"job_{assigned_task.job}_task_{assigned_task.index}"
-                # Format the task information for printing.
+                #Format the task information for printing.
                 sol_line_tasks += f"{name:15}"
                 start = assigned_task.start
                 duration = assigned_task.duration
@@ -188,7 +182,7 @@ def DisplaySolution(solver, status):
                 #Add a bar to the graph
                 bar = axis.barh(machine, width=duration, left=start, color=colours[assigned_task.job])
                 axisjobnum.append(assigned_task.job)
-            axis.bar_label(bar, labels=[f'Job:{num}' for num in axisjobnum], label_type='center')
+                axis.bar_label(bar, labels=[f'Job:{num}' for num in axisjobnum], label_type='center')
 
             sol_line += "\n"
             sol_line_tasks += "\n"
@@ -200,7 +194,7 @@ def DisplaySolution(solver, status):
     else:
         print("No solution found.")
 
-    # Print statistics about the solution process.
+    #Print statistics about the solution process.
     print("\nStatistics")
     print(f"  - conflicts: {solver.NumConflicts()}")
     print(f"  - branches : {solver.NumBranches()}")
@@ -212,7 +206,6 @@ def DisplaySolution(solver, status):
     axis.set_ylabel('Machine')
     axis.invert_yaxis()
     axis.set_xlabel('Time(h)')
-    axis.legend()
     plt.show()
 
 
