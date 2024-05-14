@@ -1,57 +1,83 @@
-"""
-Job Shop Scheduling Example.
-
-This Python script demonstrates a basic job shop scheduling problem using Google's OR-Tools.
-A job shop involves scheduling jobs on machines. Each job consists of a sequence of tasks,
-which must be performed in a given order, each on a specific machine for a specific duration.
-
-This example models a simple scenario where each job has a predefined sequence of tasks,
-each task requiring a specific machine and taking a certain amount of time to complete.
-The goal is to schedule all tasks such that the total time to complete all jobs (makespan) is minimized,
-while ensuring that tasks follow their specific order within each job and no machine processes more than
-one task at a time.
-
-The solution involves creating a constraint programming model, defining variables for task start times,
-end times, and intervals, adding constraints for machine availability and task sequencing within jobs,
-and defining an objective to minimize the makespan. The model is then solved using the CP-SAT solver.
-
-Key Concepts:
-- Horizon: The maximum time span considered for scheduling, calculated as the sum of all task durations.
-            It provides an upper limit for task scheduling.
-- Disjunctive Constraints: Ensure no two tasks are simultaneously processed on the same machine.
-- Precedence Constraints: Ensure tasks within a job are completed in the specified order.
-
-"""
+#Mabye try different solvers******
+#compare diffeent solvers
+#Could add another constraint that means jobs need to be completed before others to add another level of difficulty 
+#Display more than one outcome??
 
 import collections  # Provides access to specialized container datatypes.
+import pandas as pd 
+import matplotlib.pyplot as plt
+import randomcolor
 
 from ortools.sat.python import cp_model  # Import the CP-SAT solver.
 
+#Read Data From CSV File
+dataFile = pd.read_csv("rota_scheduling_dataset.csv", usecols=[0,1,2,3] ,header=None, skiprows=1)
+
+assigned_task_type = tuple
+all_tasks = tuple
+all_machines = tuple
+jobs_data = []
+colours = []
 
 def main():
-    
-    #Include own dataset form better grade******
-    #Mabye try different solvers******
-    #Create a visual representation of the output?******
-    
-    # Data: List of jobs, each job is a list of tasks, and each task is a tuple (machine_id, processing_time).
-    jobs_data = [
-        [
-            (0, 3),
-            (1, 2),
-            (2, 2),
-        ],  # Job0: Tasks (Machine 0 for 3 units, Machine 1 for 2 units, Machine 2 for 2 units)
-        [
-            (0, 2),
-            (2, 1),
-            (1, 4),
-        ],  # Job1: Tasks (Machine 0 for 2 units, Machine 2 for 1 unit, Machine 1 for 4 units)
-        [(1, 4), (2, 3)],  # Job2: Tasks (Machine 1 for 4 units, Machine 2 for 3 units)
-    ]
+    global assigned_task_type
+    global all_tasks
+    global all_machines
+    global jobs_data
 
-    print(jobs_data)
+    #Creating a dataset from the csv file read by pandas
+    jobs_data = DataSetCreation()
+    #Creating the colour list so all jobs can be assigned a colour later
+    ChartColourCreation()
 
-    # Calculate the number of machines needed by finding the highest machine_id in jobs_data and adding 1.
+
+    #Create model for ORtools use
+    model = ModelCreation(jobs_data)
+
+    # Solve the model using the CP-SAT solver.
+    solver = cp_model.CpSolver()
+    status = solver.Solve(model)
+
+    #Displaying Result
+    DisplaySolution(solver, status)
+
+
+def ChartColourCreation():
+    global colours
+
+    grouped_tasks = dataFile.groupby(0)
+    length_using_shape = grouped_tasks.size().shape[0]
+    coloursRequired = length_using_shape
+    i = 0
+    while i < coloursRequired:
+        # Generate a random color
+        colours.append(randomcolor.RandomColor().generate())
+        i += 1
+
+def DataSetCreation():
+    global jobs_data
+
+    # Group tasks by job ID
+    grouped_tasks = dataFile.groupby(0)
+
+    # Iterate over groups and create jobs_data
+    for _, job_tasks in grouped_tasks:
+        tasks = []
+        for _, task_row in job_tasks.iterrows():
+            machine_id = task_row[2]  # Getting machine_id from the third column
+            processing_time = task_row[3]  # Getting processing_time from the fourth column
+            tasks.append((machine_id, processing_time))
+        jobs_data.append(tasks)
+
+    #print(jobs_data)
+    return jobs_data
+
+def ModelCreation(jobs_data):
+    global assigned_task_type
+    global all_tasks
+    global all_machines
+
+# Calculate the number of machines needed by finding the highest machine_id in jobs_data and adding 1.
     machines_count = 1 + max(task[0] for job in jobs_data for task in job)
     all_machines = range(               #Range is min inclusive, max exclusive
         machines_count
@@ -114,13 +140,16 @@ def main():
     )
     model.Minimize(obj_var)
 
-    # Solve the model using the CP-SAT solver.
-    solver = cp_model.CpSolver()
-    status = solver.Solve(model)
+    return model
+
+def DisplaySolution(solver, status):
+
+    chart, axis = plt.subplots(figsize=(15, 6))
+    chart.suptitle("Machine Tasks")
 
     if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:
         print("Solution:")
-        # Assign tasks to machines based on the solution.
+        #Assign tasks to machines based on the solution.
         assigned_jobs = collections.defaultdict(list)
         for job_id, job in enumerate(jobs_data):
             for task_id, task in enumerate(job):
@@ -131,24 +160,29 @@ def main():
                         job=job_id,
                         index=task_id,
                         duration=task[1],
-                    )
+                    )                    
                 )
 
-        # Generate and print the schedule for each machine.
+        #Generate and print the schedule for each machine.
         output = ""
         for machine in all_machines:
-            assigned_jobs[machine].sort()  # Sort tasks by start time.
-            sol_line_tasks = "Machine " + str(machine) + ": "
+            assigned_jobs[machine].sort()  #Sort tasks by start time.
+            sol_line_tasks = "Machine " + str(machine + 1) + ": "
             sol_line = "           "
 
             for assigned_task in assigned_jobs[machine]:
+                axisjobnum = []
                 name = f"job_{assigned_task.job}_task_{assigned_task.index}"
-                # Format the task information for printing.
+                #Format the task information for printing.
                 sol_line_tasks += f"{name:15}"
                 start = assigned_task.start
                 duration = assigned_task.duration
                 sol_tmp = f"[{start},{start + duration}]"
                 sol_line += f"{sol_tmp:15}"
+                #Add a bar to the graph
+                bar = axis.barh(machine, width=duration, left=start, color=colours[assigned_task.job])
+                axisjobnum.append(assigned_task.job)
+                axis.bar_label(bar, labels=[f'Job:{num}' for num in axisjobnum], label_type='center')
 
             sol_line += "\n"
             sol_line_tasks += "\n"
@@ -160,12 +194,21 @@ def main():
     else:
         print("No solution found.")
 
-    # Print statistics about the solution process.
+    #Print statistics about the solution process.
     print("\nStatistics")
     print(f"  - conflicts: {solver.NumConflicts()}")
     print(f"  - branches : {solver.NumBranches()}")
     print(f"  - wall time: {solver.WallTime()}s")
 
+    #Add y axis label and show graph
+    axis.set_yticks(range(len(all_machines)))
+    axis.set_yticklabels([f'{i+1}' for i in range(len(all_machines))])
+    axis.set_ylabel('Machine')
+    axis.invert_yaxis()
+    axis.set_xlabel('Time(h)')
+    plt.show()
 
+
+#Starts the program
 if __name__ == "__main__":
     main()
